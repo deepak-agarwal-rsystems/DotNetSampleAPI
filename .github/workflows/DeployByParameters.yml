@@ -1,4 +1,4 @@
-name: Deploy .NET Web App to Azure App Service
+name: Deploy By Parameters
 
 on:
   workflow_dispatch:
