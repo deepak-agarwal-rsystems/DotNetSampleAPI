@@ -1,0 +1,59 @@
+name: Deploy .NET Web App to Azure App Service
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
+      
+      app_service:
+        description: 'Select Azure App Service Name'
+        required: true
+        type: choice
+        options:
+          - 'awstransformapp'
+          - 'transformlinuxapp'
+        default: 'appservice-name-1'
+
+      secret_name:
+        description: 'Select Publish Profile Secret Name'
+        required: true
+        type: choice
+        options:
+          - 'AZURE_WEBAPP_PUBLISH_PROFILE_1'
+          - 'AZURE_WEBAPP_PUBLISH_PROFILE_2'
+        default: 'AZURE_WEBAPP_PUBLISH_PROFILE_1'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Publish
+      run: dotnet publish --configuration Release --output ./publish --no-build
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ github.event.inputs.app_service }}
+        slot-name: 'production'
+        publish-profile: ${{ secrets[github.event.inputs.secret_name] }}
+        package: ./publish
