@@ -1,4 +1,4 @@
-name: Deploy By Parameters
+name: Deploy For Transform Code
 
 on:
   workflow_dispatch:
